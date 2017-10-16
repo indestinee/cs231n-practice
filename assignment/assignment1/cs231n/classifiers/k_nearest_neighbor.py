@@ -91,7 +91,7 @@ class KNearestNeighbor(object):
     num_train = self.X_train.shape[0]
     dists = np.zeros((num_test, num_train))
     for i in xrange(num_test):
-      dists[i, :] = np.sqrt(np.sum((X[i] - self.X_train[j]) ** 2, axis=1))
+      dists[i, :] = np.sqrt(np.sum((X[i] - self.X_train) ** 2, axis=1))
       #######################################################################
       # TODO:                                                               #
       # Compute the l2 distance between the ith test point and all training #
@@ -113,7 +113,7 @@ class KNearestNeighbor(object):
     num_test = X.shape[0]
     num_train = self.X_train.shape[0]
     dists = np.zeros((num_test, num_train)) 
-    dists[:, :] = np.sum(X ** 2, axis = 1) - 2 * np.dot(X, self.X_train.transpose()) + np.sum(self.X_train ** 2, axis = 1).reshape(1, -1)
+    dists[:, :] = np.sqrt(np.sum(X ** 2, axis = 1).reshape(-1, 1) - 2 * np.dot(X, self.X_train.transpose()) + np.sum(self.X_train ** 2, axis = 1).reshape(1, -1))
     #########################################################################
     # TODO:                                                                 #
     # Compute the l2 distance between all test points and all training      #
@@ -146,11 +146,11 @@ class KNearestNeighbor(object):
       test data, where y[i] is the predicted label for the test point X[i].  
     """
     num_test = dists.shape[0]
-    y_pred = np.zeros(num_test)
+    y_pred = np.zeros(num_test, dtype=int)
     for i in xrange(num_test):
       # A list of length k storing the labels of the k nearest neighbors to
       # the ith test point.
-      closest_y = []
+      closest_y = self.y_train[np.argsort(dists[i])[:k]]
       #########################################################################
       # TODO:                                                                 #
       # Use the distance matrix to find the k nearest neighbors of the ith    #
@@ -159,6 +159,8 @@ class KNearestNeighbor(object):
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
       pass
+      y_pred[i] = np.argmax(np.bincount(closest_y))
+
       #########################################################################
       # TODO:                                                                 #
       # Now that you have found the labels of the k nearest neighbors, you    #
