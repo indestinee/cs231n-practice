@@ -50,8 +50,19 @@ def svm_loss_naive(W, X, y, reg):
   # loss is being computed. As a result you may need to modify some of the    #
   # code above to compute the gradient.                                       #
   #############################################################################
+  for i in range(num_train):
+      dl = 1.0 / num_train
+      scores = X[i].dot(W)
+      correct_class_score = scores[y[i]]
 
+      scores = (scores - correct_class_score + 1 > 0) * 1 
+      scores[y[i]] = 0
 
+      ds = scores * dl
+      ds[y[i]] -= scores.sum() * dl
+      for k in range(W.shape[1]):
+          dW[:, k] += ds[k] * X[i, :]
+  dW += 2 * W * reg
   return loss, dW
 
 
@@ -69,6 +80,12 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
+  scores = X.dot(W)
+  correct_class_score = scores[range(X.shape[0]), y]
+  dist = np.maximum(0, scores - correct_class_score.reshape(-1, 1) + 1)
+  dist[range(X.shape[0]), y] = 0
+  loss = dist.sum() / X.shape[0]
+  loss += reg * (W**2).sum()
   pass
   #############################################################################
   #                             END OF YOUR CODE                              #
@@ -84,6 +101,18 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
+  dist = (dist > 0) * 1 / X.shape[0]
+  dist[range(X.shape[0]), y] -= dist.sum(axis=1)
+  '''
+    dL/ds = dist
+    s[i, j] = sum{X[i, k] * W[k, j]}
+    ds[i, j]/dW[k, j] = sum(X[i, k])
+    dL/dW[k, j] = sum{X[i, k] * dist[i, j]}
+    dL/dW[k, j] = sum{X-1[k, i] * dist[i, j]}
+    dL/dW = X-1.dot(dist)
+  '''
+  dW = X.transpose().dot(dist)
+  dW += 2 * reg * W
   pass
   #############################################################################
   #                             END OF YOUR CODE                              #

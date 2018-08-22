@@ -29,6 +29,18 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
+  s = np.exp(X.dot(W))
+  s = s / s.sum(axis=1, keepdims=True)
+  p = s[range(s.shape[0]), y]
+  loss = -np.log(p).mean()
+  loss += reg * (W**2).sum()
+
+  dp = -1 / p / X.shape[0]
+  dsy = dp * p * (1 - p)
+  dsi = dp.reshape(-1, 1) * (-p.reshape(-1, 1) * s)
+  dsi[range(dsi.shape[0]), y] = dsy
+  dW = X.transpose().dot(dsi)
+  dW += 2 * reg * W;
   pass
   #############################################################################
   #                          END OF YOUR CODE                                 #
@@ -53,6 +65,18 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
+  s = np.exp(X.dot(W))
+  s = s / s.sum(axis=1, keepdims=True)
+  p = s[range(s.shape[0]), y]
+  loss = -np.log(p).mean()
+  loss += reg * (W**2).sum()
+
+  dp = -1 / p / X.shape[0]
+  dsy = dp * p * (1 - p)
+  dsi = dp.reshape(-1, 1) * (-p.reshape(-1, 1) * s)
+  dsi[range(dsi.shape[0]), y] = dsy
+  dW = X.transpose().dot(dsi)
+  dW += 2 * reg * W;
   pass
   #############################################################################
   #                          END OF YOUR CODE                                 #
